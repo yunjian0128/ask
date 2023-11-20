@@ -1,9 +1,84 @@
 {
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	"easycom": {
+		"^u-(.*)": "uview-ui/components/u-$1/u-$1.vue"
+	},
+	"pages": [
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "uni-app"
+				"navigationBarTitleText": "首页"
+			}
+		},
+		{
+			"path": "pages/business/login",
+			"style": {
+				"navigationBarTitleText": "授权登录"
+			}
+		},
+		{
+			"path": "pages/business/index",
+			"style": {
+				"navigationBarTitleText": "会员中心"
+			}
+		},
+		{
+			"path": "pages/business/profile",
+			"style": {
+				"navigationBarTitleText": "基本资料"
+			}
+		},
+		{
+			"path": "pages/post/add",
+			"style": {
+				"navigationBarTitleText": "发帖子"
+			}
+		},
+		{
+			"path": "pages/post/edit",
+			"style": {
+				"navigationBarTitleText": "编辑帖子"
+			}
+		},
+		{
+			"path": "pages/post/info",
+			"style": {
+				"navigationBarTitleText": "提问详情"
+			}
+		},
+		{
+			"path": "pages/business/post",
+			"style": {
+				"navigationBarTitleText": "我的提问"
+			}
+		},
+		{
+			"path": "pages/business/follow",
+			"style": {
+				"navigationBarTitleText": "我的关注"
+			}
+		},
+		{
+			"path": "pages/business/message",
+			"style": {
+				"navigationBarTitleText": "我的私信"
+			}
+		},
+		{
+			"path": "pages/business/pay",
+			"style": {
+				"navigationBarTitleText": "余额充值"
+			}
+		},
+		{
+			"path": "pages/business/checkin",
+			"style": {
+				"navigationBarTitleText": "每日签到"
+			}
+		},
+		{
+			"path": "pages/business/center",
+			"style": {
+				"navigationBarTitleText": "个人主页"
 			}
 		}
 	],
@@ -12,5 +87,31 @@
 		"navigationBarTitleText": "uni-app",
 		"navigationBarBackgroundColor": "#F8F8F8",
 		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#909399",
+		"selectedColor": "#303133",
+		"borderStyle": "black",
+		"backgroundColor": "#ffffff",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"iconPath": "static/tabbar/home.png",
+				"selectedIconPath": "static/tabbar/home-on.png",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/post/add",
+				"iconPath": "static/tabbar/category.png",
+				"selectedIconPath": "static/tabbar/category-on.png",
+				"text": "发布提问"
+			},
+			{
+				"pagePath": "pages/business/index",
+				"iconPath": "static/tabbar/user.png",
+				"selectedIconPath": "static/tabbar/user-on.png",
+				"text": "我的"
+			}
+		]
 	}
 }
