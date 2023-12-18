@@ -36,14 +36,14 @@
                         type="warning"
                         plain
                         icon="star-fill"
-                        @click="collect"
+                        @click="ColCancelToggle"
                     ></u-tag
                     ><u-tag
                         class="item"
                         v-else
                         text="收藏"
                         type="warning"
-                        @click="collect"
+                        @click="Collect"
                         icon="star"
                     ></u-tag>
                 </view>
@@ -55,15 +55,11 @@
                 <!-- 头像 -->
                 <view class="avatar">
                     <image
-                        mode="aspectFit"
+                        mode="fill"
                         v-if="post.business.avatar_text"
                         :src="post.business.avatar_text"
                     ></image>
-                    <image
-                        mode="aspectFit"
-                        v-else
-                        src="/static/avatar.png"
-                    ></image>
+                    <image mode="fill" v-else src="/static/avatar.png"></image>
                 </view>
 
                 <!-- 昵称 -->
@@ -73,17 +69,27 @@
 
                 <!-- 发布时间 -->
                 <view class="createtime"
-                    >发布于 {{ post.createtime_text }}</view
+                    >发布于 <br />{{ post.createtime_text }}</view
                 >
 
                 <view class="follow">
                     <u-tag
+                        v-if="post.busid != business.id && post.subscribe"
+                        class="item"
+                        text="取消关注"
+                        type="error"
+                        icon="plus-people-fill"
+                        size="mini"
+                        @click="SubCancelToggle"
+                    ></u-tag
+                    ><u-tag
+                        v-else-if="post.busid != business.id"
                         class="item"
                         text="关注"
                         type="error"
                         icon="plus-people-fill"
                         size="mini"
-                        @click="SubscriptionToggle"
+                        @click="Subscribe"
                     ></u-tag>
                 </view>
             </view>
@@ -156,47 +162,7 @@
         </view>
 
         <!-- 评论列表 -->
-        <comment :postid="postid" :pid="0" :show="true" />
-
-        <!-- 弹出层 -->
-        <u-popup :show="MenuShow" @close="MenuShow = false">
-            <view class="menu">
-                <view class="grid">
-                    <u-grid :border="true">
-                        <u-grid-item>
-                            <u-icon type="warning" size="35"></u-icon>
-                            <u--text
-                                type="warning"
-                                text="补充回答"
-                                align="center"
-                            ></u--text>
-                        </u-grid-item>
-                        <u-grid-item>
-                            <u-icon name="checkmark" size="35"></u-icon>
-                            <u--text
-                                type="success"
-                                text="采纳此答案"
-                                align="center"
-                            ></u--text>
-                        </u-grid-item>
-                        <u-grid-item>
-                            <u-icon name="trash-fill" size="35"></u-icon>
-                            <u--text
-                                type="error"
-                                text="删除"
-                                align="center"
-                            ></u--text>
-                        </u-grid-item>
-                    </u-grid>
-                </view>
-                <u-button
-                    class="btn"
-                    type="error"
-                    text="取消"
-                    @click="MenuShow = false"
-                ></u-button>
-            </view>
-        </u-popup>
+        <comment v-if="refresh" :postid="postid" :pid="0" :show="true" />
 
         <!-- 回答弹出层 -->
         <u-popup :show="AnswerShow" @close="AnswerShow = false">
@@ -232,6 +198,30 @@
             </view>
         </u-popup>
 
+        <!-- 取消关注确定框 -->
+        <u-modal
+            :show="SubCancelShow"
+            :title="'取消关注提醒'"
+            :content="'是否确认取消关注此用户'"
+            showCancelButton
+            :closeOnClickOverlay="true"
+            @cancel="SubCancelShow = false"
+            @close="SubCancelShow = false"
+            @confirm="Subscribe"
+        ></u-modal>
+
+        <!-- 取消收藏确定框 -->
+        <u-modal
+            :show="ColCancelShow"
+            :title="'取消收藏提醒'"
+            :content="'是否确认取消收藏此帖子'"
+            showCancelButton
+            :closeOnClickOverlay="true"
+            @cancel="ColCancelShow = false"
+            @close="ColCancelShow = false"
+            @confirm="Collect"
+        ></u-modal>
+
         <!-- 提醒组件 -->
         <u-toast ref="notice"></u-toast>
     </view>
@@ -244,24 +234,29 @@ import comment from "@/components/comment/index.vue";
 export default {
     components: { comment },
 
-    onReady() {
-        // onReady 为uni-app支持的生命周期之一
-        // 设置表单验证规则
-        // this.$refs.answer.setRules(this.rules);
-    },
-
     onLoad(options) {
         var postid = options.postid ? options.postid : 0;
         this.postid = postid;
 
         this.business = uni.getStorageSync("business")
             ? uni.getStorageSync("business")
-            : {}; // 从缓存中获取用户信息
+            : {};
 
         // 调用请求数据
         this.PostData();
         this.CommentData();
     },
+    // onShow() {
+    //     this.business = uni.getStorageSync("business")
+    //         ? uni.getStorageSync("business")
+    //         : {};
+
+    //     // 调用请求数据
+    //     this.PostData();
+
+    //     this.CommentData();
+    // },
+
     data() {
         return {
             postid: 0,
@@ -272,10 +267,13 @@ export default {
             answer: {
                 content: "",
             },
+            refresh: true,
             comlist: [],
             business: {},
             MenuShow: false,
             AnswerShow: false,
+            SubCancelShow: false,
+            ColCancelShow: false,
             content: `
 					<b>这个是正文内容</b>
 					<img src="https://cdn.uviewui.com/uview/swiper/2.jpg" />
@@ -305,7 +303,8 @@ export default {
             }
 
             // 调用接口
-            var result = await uni.$u.http.post("/post/info", data);
+            var result = await uni.$u.http.post("post/info", data);
+
             if (result.code == 0) {
                 this.$refs.notice.show({
                     type: "error",
@@ -341,7 +340,9 @@ export default {
         },
 
         // 关注
-        async SubscriptionToggle() {
+        async Subscribe() {
+            this.SubCancelShow = false;
+
             // 判断是否登录
             if (!this.business || !this.business.id) {
                 this.$refs.notice.show({
@@ -351,32 +352,46 @@ export default {
                 return false;
             }
 
+            // 自己不能关注自己
+            if (this.business.id == this.post.busid) {
+                this.$refs.notice.show({
+                    type: "error",
+                    message: "自己不能关注自己",
+                });
+                return false;
+            }
+
             // 组装数据
             var data = {
-                postid: this.postid,
-                busid: this.business.id,
+                busid: this.post.busid,
+                fansid: this.business.id,
             };
 
             // 调用接口
-            var result = await uni.$u.http.post("/post/subscription", data);
+            var result = await uni.$u.http.post("/post/subscribe", data);
+
             if (result.code == 0) {
                 this.$refs.notice.show({
                     type: "error",
                     message: result.msg,
                 });
-            } else {
-                this.$refs.notice.show({
-                    type: "success",
-                    message: result.msg,
-                });
 
-                // 刷新数据
-                this.post.subscription = !this.post.subscription;
+                return false;
             }
+
+            this.$refs.notice.show({
+                type: "success",
+                message: result.msg,
+            });
+
+            // 刷新数据
+            this.PostData();
         },
 
         // 收藏
-        async collect() {
+        async Collect() {
+            this.ColCancelShow = false;
+
             // 判断是否登录
             if (!this.business || !this.business.id) {
                 this.$refs.notice.show({
@@ -425,6 +440,16 @@ export default {
             this.comment.pid = 0;
         },
 
+        // 弹出取消关注框
+        SubCancelToggle() {
+            this.SubCancelShow = true;
+        },
+
+        // 弹出取消收藏框
+        ColCancelToggle() {
+            this.ColCancelShow = true;
+        },
+
         // 提交答案
         submit() {
             // 判断是否有通过表单验证
@@ -432,10 +457,6 @@ export default {
                 .validate()
                 .then(async (res) => {
                     this.AnswerShow = false;
-                    this.$refs.notice.show({
-                        type: "success",
-                        message: "通过表单验证",
-                    });
 
                     // 判断是否登录
                     if (!this.business || !this.business.id) {
@@ -451,8 +472,7 @@ export default {
                         postid: this.postid,
                         busid: this.business.id,
                         content: this.comment.content,
-                        pid: this.comment.pid,
-                        level: 0,
+                        pid: 0,
                     };
 
                     // 调用接口
@@ -472,8 +492,15 @@ export default {
                         message: result.msg,
                     });
 
-                    // 调用另一个组件中的方法
-                    comment.methods.CommentData();
+                    // 刷新数据
+                    this.comment.content = "";
+
+                    //隐藏掉评论列表
+                    this.refresh = false;
+
+                    this.$nextTick(() => {
+                        this.refresh = true;
+                    });
                 })
                 .catch((error) => {
                     console.log(error);

@@ -7,7 +7,8 @@
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "首页"
-			}
+			},
+			"enablePullDownRefresh": true
 		},
 		{
 			"path": "pages/business/login",
@@ -28,6 +29,18 @@
 			}
 		},
 		{
+			"path": "pages/business/email",
+			"style": {
+				"navigationBarTitleText": "邮箱验证"
+			}
+		},
+		{
+			"path": "pages/business/chat",
+			"style": {
+				"navigationBarTitleText": "聊天"
+			}
+		},
+		{
 			"path": "pages/post/add",
 			"style": {
 				"navigationBarTitleText": "发帖子"
@@ -43,7 +56,8 @@
 			"path": "pages/post/info",
 			"style": {
 				"navigationBarTitleText": "提问详情"
-			}
+			},
+			"enablePullDownRefresh": true
 		},
 		{
 			"path": "pages/business/post",
@@ -67,6 +81,12 @@
 			"path": "pages/business/pay",
 			"style": {
 				"navigationBarTitleText": "余额充值"
+			}
+		},
+		{
+			"path": "pages/business/confirm",
+			"style": {
+				"navigationBarTitleText": "确认支付"
 			}
 		},
 		{

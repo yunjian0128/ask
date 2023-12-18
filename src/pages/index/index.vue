@@ -2,7 +2,7 @@
     <view class="content">
         <view class="header">
             <view class="search">
-                <view class="slogan">知识社区</view>
+                <view class="slogan">电脑DIY问答社区</view>
                 <input
                     class="uni-input search-area"
                     v-model="keywords"
@@ -26,12 +26,12 @@
                 <view class="business">
                     <view class="avatar">
                         <image
-                            mode="aspectFit"
+                            mode="fill"
                             v-if="post.business.avatar"
                             :src="post.business.avatar_text"
                         ></image>
                         <image
-                            mode="aspectFit"
+                            mode="fill"
                             v-else
                             src="/static/avatar.png"
                         ></image>
@@ -51,7 +51,15 @@
                     <view class="category">分类：{{ post.category.name }}</view>
 
                     <view class="join">
-                        <view class="status">{{ post.status_text }}</view>
+                        <view
+                            v-if="post.status == '1'"
+                            style="color: green; border: green 1px solid"
+                            class="status"
+                            >{{ post.status_text }}</view
+                        >
+                        <view v-else color="success" class="status">{{
+                            post.status_text
+                        }}</view>
                         <view class="point">￥{{ post.point }}</view>
                         <view class="count"
                             >{{ post.comment_text }}人参与回复</view
@@ -64,6 +72,7 @@
         <!-- 提醒组件 -->
         <u-toast ref="notice"></u-toast>
 
+        <!-- 回到顶部 -->
         <u-back-top :scroll-top="scrollTop"></u-back-top>
     </view>
 </template>
@@ -76,8 +85,10 @@ export default {
     },
     // 上拉加载
     onReachBottom() {
-        if (this.finished) return;
-        this.page++;
+        if (this.finished) {
+            this.finished = false;
+        }
+
         this.PostData();
     },
     onPageScroll(e) {
@@ -96,14 +107,22 @@ export default {
         };
     },
     methods: {
+        // 获取分类数据
         async CateData() {
             var result = await uni.$u.http.post("/post/cate");
             this.CateList.push(...result.data);
         },
+
+        // 分类切换
         async CateCheck(item) {
             this.cateid = item.id;
-            this.refresh();
+            this.finished = false;
+            this.page = 1;
+            this.postlist = [];
+            this.PostData();
         },
+
+        // 帖子详情
         async PostData() {
             // 组装数据
             var data = {
@@ -128,6 +147,7 @@ export default {
             }
 
             this.postlist = this.postlist.concat(result.data);
+            this.page++;
         },
 
         // 搜索
@@ -143,8 +163,18 @@ export default {
             this.postlist = [];
             this.PostData();
         },
+
+        // 上拉加载
         loadmore() {
             console.log("上拉加载");
+        },
+
+        // 截取字符串
+        truncatedContent(content, maxLength) {
+            if (content.length > maxLength) {
+                return content.substring(0, maxLength) + "...";
+            }
+            return content;
         },
     },
 };
@@ -255,7 +285,10 @@ export default {
     font-size: 0.9em;
     color: #999;
 }
-
+.info .title {
+    /* 去掉下划线 */
+    text-decoration: none !important;
+}
 .info .title,
 .info .createtime,
 .info .category,

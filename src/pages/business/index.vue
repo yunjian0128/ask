@@ -8,7 +8,7 @@
                     v-if="business.avatar_text"
                     :src="business.avatar_text"
                 ></image>
-                <image v-else src="/static/logo.png"></image>
+                <image v-else src="/static/avatar.png"></image>
                 <!-- #endif -->
 
                 <!-- #ifdef MP-WEIXIN -->
@@ -59,10 +59,11 @@
                     url="/pages/business/profile"
                 ></u-cell>
                 <u-cell
+                    v-if="business.auth == '0'"
                     icon="email-fill"
                     title="邮箱认证"
                     :isLink="true"
-                    url="/pages/business/profile"
+                    url="/pages/business/email"
                 ></u-cell>
                 <u-cell
                     icon="integral-fill"
@@ -82,12 +83,14 @@
                     :isLink="true"
                     url="/pages/business/message"
                 ></u-cell>
+                <!-- #ifdef H5 || APP -->
                 <u-cell
                     icon="rmb"
                     title="余额充值"
                     :isLink="true"
                     url="/pages/business/pay"
                 ></u-cell>
+                <!-- #endif -->
                 <u-cell
                     icon="pushpin-fill"
                     title="每日签到"
@@ -98,6 +101,7 @@
                     icon="lock-open"
                     title="解绑账号"
                     :isLink="true"
+                    @click="UnbindToggle"
                 ></u-cell>
                 <u-cell
                     icon="share-square"
@@ -107,6 +111,8 @@
                 ></u-cell>
             </u-cell-group>
         </view>
+
+        <!-- 菜单列表 -->
         <view class="menulist" v-else>
             <u-cell-group>
                 <u-cell
@@ -157,6 +163,18 @@
             @close="show = false"
             @confirm="logout"
         ></u-modal>
+
+        <!-- 解绑提醒 -->
+        <u-modal
+            :show="UnbindShow"
+            :title="'解绑提醒'"
+            :content="'是否确认解绑'"
+            showCancelButton
+            :closeOnClickOverlay="true"
+            @cancel="UnbindShow = false"
+            @close="UnbindShow = false"
+            @confirm="Unbind"
+        ></u-modal>
     </view>
 </template>
 
@@ -170,10 +188,12 @@ export default {
     data() {
         return {
             show: false,
+            UnbindShow: false,
             business: {},
         };
     },
     methods: {
+        // 登录
         login() {
             uni.login({
                 provider: "weixin",
@@ -230,12 +250,58 @@ export default {
                 },
             });
         },
+
+        // 退出登录
         logout() {
             this.show = false;
 
             this.$refs.notice.show({
                 type: "success",
                 message: "退出成功",
+                duration: 1000,
+                complete: () => {
+                    uni.removeStorageSync("business");
+                    this.business = {};
+                },
+            });
+        },
+
+        // 解绑账号
+        UnbindToggle() {
+            this.UnbindShow = true;
+        },
+
+        // 解绑账号
+        async Unbind() {
+            this.UnbindShow = false;
+
+            // 判断是否有用户登录
+            if (!this.business || !this.business.id) {
+                this.$refs.notice.show({
+                    type: "error",
+                    message: "请先登录",
+                });
+
+                return false;
+            }
+
+            var result = await uni.$u.http.post("/business/unbind", {
+                busid: this.business.id,
+            });
+
+            // 判断结果
+            if (result.code == 0) {
+                this.$refs.notice.show({
+                    type: "error",
+                    message: result.msg,
+                });
+
+                return false;
+            }
+
+            this.$refs.notice.show({
+                type: "success",
+                message: result.msg,
                 duration: 1000,
                 complete: () => {
                     uni.removeStorageSync("business");

@@ -184,6 +184,9 @@ export default {
                                     postid: result.data.postid,
                                 },
                             });
+
+                            // 重置表单
+                            this.$refs.post.resetFields();
                             return false;
                         },
                     });

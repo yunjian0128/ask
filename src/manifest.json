@@ -1,7 +1,7 @@
 {
-	"name": "知识问答社区",
+	"name": "电脑DIY问答社区",
 	"appid": "__UNI__B5B0F08",
-	"description": "一个解决你困惑的地方",
+	"description": "一个解决你DIY爱机困惑的地方",
 	"versionName": "1.0.0",
 	"versionCode": "100",
 	"transformPx": false,
